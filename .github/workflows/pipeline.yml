@@ -1,0 +1,131 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - dev
+      - main
+  pull_request:
+    types: [opened, synchronize, reopened]
+  workflow_dispatch:  # Allows manual execution of the workflow
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: Create and activate virtual environment
+        run: |
+          python -m venv venv
+          source venv/bin/activate
+
+      - name: Install dependencies
+        run: |
+          source venv/bin/activate
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install kafka-python==1.4.7 six==1.16.0  # Install Kafka and Six
+
+      - name: Debug Info  # Debugging step to verify the environment
+        run: |
+          source venv/bin/activate
+          echo "Python version: $(python --version)"
+          echo "Installed packages:"
+          pip freeze
+
+      - name: Run tests
+        run: |
+          source venv/bin/activate
+          pytest --maxfail=5 --disable-warnings
+
+      - name: Check if tests passed
+        if: failure()  # This condition will ensure the step runs only if the previous step fails
+        run: |
+          echo "Tests failed. Blocking PR."
+          exit 1
+
+  block-direct-push:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Block Direct Push
+        run: |
+          echo "Direct pushes to the main branch are not allowed. Please open a pull request from the dev branch."
+          exit 1  # Ensure this step blocks the push
+
+  enforce-pr-from-dev:
+    if: github.event_name == 'pull_request' && github.base_ref == 'main' && github.head_ref != 'dev' && github.actor != 'naoassisto'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Enforce PR from Dev
+        run: |
+          echo "Pull requests to main must come from the dev branch. Please update your PR."
+          exit 1  # This will block the merge if conditions are not met
+
+  require-review-main:
+    if: github.event_name == 'pull_request' && github.base_ref == 'main' && github.actor != 'naoassisto'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require Review for PR to Main
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const { data: reviews } = await github.pulls.listReviews({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.payload.pull_request.number,
+            });
+
+            const approvedReviews = reviews.filter(review => review.state === 'APPROVED');
+            
+            if (approvedReviews.length === 0) {
+              core.setFailed("This pull request requires at least one approval from a different team member.");
+            }
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  bypass-review-for-author-main:
+    if: github.event_name == 'pull_request' && github.base_ref == 'main' && github.actor == 'naoassisto'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Bypass Review for Main
+        run: |
+          echo "Pull request created by naoassisto. Bypassing review requirement."
+
+  require-review-dev:
+    if: github.event_name == 'pull_request' && github.base_ref == 'dev' && github.actor != 'naoassisto'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require Review for PR to Dev
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const { data: reviews } = await github.pulls.listReviews({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.payload.pull_request.number,
+            });
+
+            const approvedReviews = reviews.filter(review => review.state === 'APPROVED');
+            
+            if (approvedReviews.length === 0) {
+              core.setFailed("This pull request requires at least one approval before merging.");
+            }
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  bypass-review-for-author-dev:
+    if: github.event_name == 'pull_request' && github.base_ref == 'dev' && github.actor == 'naoassisto'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Bypass Review for Dev
+        run: |
+          echo "Pull request created by naoassisto. Bypassing review requirement."

@@ -1,0 +1,66 @@
+:root {
+    --primaryColor:#8280ff;
+    --backgroundColor:#1b2431;
+    --secondaryBackgroundColor:#273142;
+    --borderColor: #313D4F;
+}
+
+
+[data-testid='column'] {
+    padding: 14px;
+    background: var(--secondaryBackgroundColor);
+    border-radius: 20px;
+    border: 1px solid var(--borderColor);
+}
+
+[data-testid='stProgress'] > div > div > div {
+    height: 3rem;
+    background-color: var(--backgroundColor);
+    border-radius: 20px;
+    border: 1px solid var(--borderColor);
+}
+
+[data-testid='stProgress'] > div > div > div > div {
+    border-radius: 20px;
+}
+
+div:has(> a[data-testid*='stSidebarNavLink']:hover) a{
+    background: var(--primaryColor);
+    transform:translateY(-2px);
+    transition: .3s;
+}
+
+div:has(> a[data-testid*='stSidebarNavLink']) :visited {
+    background-color: var(--primaryColor);
+    color: white;
+    transition: .3s;
+}
+
+.block-container {
+    padding: 2rem 1rem 4rem 1rem;
+    max-width: 100% !important;
+}
+
+a:hover {
+    background-color: none;
+}
+
+table {
+    background-color: transparent !important;
+    width: 100%;
+}
+
+.ag-theme-quartz, .ag-theme-quartz-dark {
+    --ag-header-height: 2rem;
+    --ag-header-foreground-color: rgb(255, 0, 0);
+    --ag-header-background-color: #0066ff;
+    --ag-header-cell-hover-background-color: rgb(80, 40, 140);
+    --ag-header-cell-moving-background-color: rgb(80, 40, 140);
+}
+
+.ag-theme-quartz .ag-header {
+    text-align:left;
+    color:white;
+    background:#323D4E;
+    padding:1rem 2rem 1rem 2rem;
+}

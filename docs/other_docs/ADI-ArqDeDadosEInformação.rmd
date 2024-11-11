@@ -1,0 +1,110 @@
+---
+
+title: "Arquitetura de Dados e Informação"  
+author: "BCGenius - Grupo 2"  
+date: "`r format(Sys.Date(), '%d/%m/%Y')`"  
+output: html_document  
+
+---
+
+## Considerações de Governança - Segurança
+
+### Pontos identificados:
+
+1. **Controle de Acesso (Supabase e ClickHouse):**
+   - O Data Lake, utilizando Supabase, e o Data Warehouse, utilizando ClickHouse, têm implementados mecanismos robustos de controle de acesso. No Supabase, utiliza-se o Protocolo RLS (Row-Level Security) e logs automatizados, enquanto o ClickHouse conta com controle de acesso baseado em funções (RBAC), certificação SSL, e logs automatizados para monitoramento.
+
+2. **Gerenciamento de Identidades e Autenticação:**
+   - A arquitetura incorpora um gerenciamento de identidades robusto, incluindo a criação e gestão de usuários, políticas de acesso detalhadas, e controle de autenticação multifator (MFA) via SSO. Este gerenciamento é essencial para assegurar que somente usuários autenticados e autorizados possam acessar os recursos e dados sensíveis.
+
+3. **Criptografia de Credenciais e Dados Sensíveis:**
+   - A arquitetura inclui a criptografia de credenciais e dados sensíveis, garantindo que tanto os dados em repouso quanto em trânsito estejam protegidos contra acessos não autorizados. 
+
+4. **Integração com Diretórios LDAP e Suporte a Políticas de Senha Forte:**
+   - A integração com diretórios LDAP e o suporte a políticas de senha forte oferecem uma camada adicional de segurança, assegurando que as credenciais dos usuários estejam sempre protegidas.
+
+### Considerações estratégicas:
+
+1. **Criptografia:**
+   - **Dados em repouso:** A criptografia em repouso é aplicada no Data Warehouse (ClickHouse), protegendo informações críticas contra acessos indevidos.
+   - **Dados em trânsito:** A implementação de TLS/SSL para proteger dados em trânsito entre os diferentes componentes da arquitetura é crucial.
+
+2. **Controle de acesso e autenticação:**
+   - **Autenticação Multi-Fator (MFA):** O uso de MFA em todos os pontos de acesso críticos, especialmente em dashboards e relatórios, deve ser reforçado para aumentar a segurança.
+   - **Controle granular de acesso:** A adoção de um controle granular de acesso, via RBAC e Protocolo RLS, assegura que cada usuário tenha apenas as permissões necessárias para sua função.
+
+3. **Monitoramento e auditoria:**
+   - **Logs de auditoria:** A arquitetura deve continuar a incorporar logs detalhados de todas as atividades de acesso e uso de dados para fins de conformidade e resposta a incidentes.
+
+4. **Resiliência e backup:**
+   - **Backup e recuperação:** A inclusão de backups regulares e testes de recuperação assegura a disponibilidade e integridade dos dados em situações adversas.
+
+### Planos de ação:
+
+1. **Fortalecer criptografia de dados em trânsito:**
+   - Implementar e verificar o uso de TLS/SSL em todos os pontos de comunicação entre componentes.
+
+2. **Melhorar autenticação e controle de acesso:**
+   - Expandir o uso de MFA para todas as interfaces críticas e assegurar o uso consistente de RBAC e Protocolo RLS.
+
+3. **Implementar monitoramento contínuo:**
+   - Utilizar logs de auditoria e sistemas de monitoramento em tempo real para detectar e responder a incidentes de segurança.
+
+4. **Desenvolver e testar rotinas de backup e recuperação:**
+   - Implementar rotinas de backup automatizadas e realizar testes regulares para garantir a resiliência da arquitetura.
+
+## Plano de monitoramento e gerenciamento na arquitetura
+
+### Pontos identificados:
+
+1. **Gerenciamento e controle do Pipeline de Deploy:**
+   - O uso do Terraform para gerenciamento da infraestrutura como código (IaC) demanda monitoramento contínuo, assegurando que os recursos da AWS estejam em conformidade e performando adequadamente.
+
+2. **Monitoramento do Data Lake e Data Warehouse:**
+   - Monitorar a integridade e qualidade dos dados armazenados no Supabase e ClickHouse é crucial para a operação segura e eficiente do pipeline de dados.
+
+3. **Dashboards e relatórios:**
+   - As plataformas de visualização (Streamlit e Power BI) requerem monitoramento contínuo para garantir a disponibilidade e performance adequada, além de monitorar acessos para conformidade e segurança.
+
+4. **Autenticação e controle de acesso:**
+   - Monitorar atividades de login e tentativas de acesso não autorizadas é fundamental para prevenir e responder a ameaças de segurança.
+
+### Considerações estratégicas:
+
+1. **Disponibilidade e desempenho:**
+   - Garantir alta disponibilidade e desempenho dos componentes críticos, como o Data Warehouse e as interfaces de visualização de dados.
+
+2. **Integridade e qualidade dos dados:**
+   - Monitorar e assegurar a integridade dos dados ao longo de todo o pipeline é estratégico para evitar inconsistências e erros na tomada de decisões.
+
+3. **Segurança e conformidade:**
+   - Monitorar a conformidade com políticas de segurança e regulamentações aplicáveis, como LGPD, é essencial para a operação segura do sistema.
+
+4. **Resiliência e recuperação:**
+   - Implementar mecanismos de monitoramento para detectar falhas precocemente e assegurar capacidades de recuperação rápidas.
+
+### Detalhamento da proposta apresentada:
+
+1. **Monitoramento de infraestrutura (AWS CloudWatch & Terraform):**
+   - **AWS CloudWatch:** Monitorar métricas de performance e logs dos recursos AWS utilizando AWS CloudWatch, configurando alertas para anomalias.
+   - **Terraform:** Integrar Terraform com AWS CloudWatch para monitorar alterações na infraestrutura, incluindo detecção de falhas em deployments.
+
+2. **Monitoramento de Pipeline e ETL (Apache Airflow):**
+   - **Apache Airflow:** Usar o Apache Airflow para orquestrar e monitorar o pipeline ETL, com alertas para falhas e atrasos no processamento.
+
+3. **Monitoramento de Dados (Great Expectations):**
+   - **Great Expectations:** Implementar o Great Expectations para garantir a qualidade e integridade dos dados ao longo do pipeline.
+
+4. **Monitoramento de Segurança (AWS GuardDuty & SIEM):**
+   - **AWS GuardDuty:** Utilizar AWS GuardDuty para monitorar ameaças à segurança na infraestrutura AWS.
+   - **SIEM:** Implementar um sistema SIEM para análise centralizada de logs de segurança e geração de alertas em tempo real.
+
+5. **Monitoramento de Dashboards e Relatórios (Google Analytics & Power BI Service):**
+   - **Google Analytics:** Monitorar o uso e a performance dos dashboards em Streamlit com Google Analytics.
+   - **Power BI Service:** Usar Power BI Service para garantir a performance e disponibilidade dos relatórios.
+
+6. **Recuperação de Desastres (AWS Backup):**
+   - **AWS Backup:** Implementar backups automatizados para o Data Warehouse e Data Lake, com testes regulares de recuperação de desastres.
+
+---
+

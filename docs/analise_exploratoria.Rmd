@@ -1,0 +1,633 @@
+
+```r
+---
+title: "Análise de Dados - BCGenius"  
+output: html_document  
+date: "2024-08-08"  
+---
+
+# Análise Exploratória e de Governança de Dados
+
+## Variáveis e Pontos Estratégicos
+
+-   Importando as Bibliotecas Necessárias
+
+As bibliotecas utilizadas têm como objetivo facilitar o tratamento de dados, a criação de novos datasets e a geração de gráficos.
+
+```{r setup}
+knitr::opts_chunk$set(echo = TRUE, warning=FALSE, message=FALSE)
+library(dplyr)
+library(tidyr)
+library(tibble)
+library(ggplot2)
+library(corrplot)
+# library(FactoMineR)
+# library(factoextra)
+```
+
+- Carregamento dos Datasets para Análise
+
+Nesta análise exploratória, o dataset de transações de 2024 é carregado e relacionado a outros conjuntos de dados. A utilização do `as_tibble` facilita a visualização no console e reduz a ocorrência de erros na manipulação de colunas.
+
+```{r loading datasets}
+`2024` <- read.csv("./../src/data/raw/2024.csv", encoding = "ISO-8859-1")
+store_final <- read.csv("./../src/data/raw/store_final.csv", encoding = "ISO-8859-1")
+target_store_final <- read.csv("./../src/data/raw/target_store_final.csv", encoding = "ISO-8859-1")
+sku_status_dataset <- read.csv("./../src/data/raw/sku_status_dataset.csv", encoding = "ISO-8859-1")
+targets_salesperson_final <- read.csv("../../src/data/raw/targets_salesperson_final.csv", encoding = "ISO-8859-1")
+sku_price <- read.csv("./../src/data/raw/sku_price.csv", encoding = "ISO-8859-1")
+sku_dataset <- read.csv("./../src/data/raw/sku_dataset.csv", encoding = "ISO-8859-1", sep = ";")
+sku_cost <- read.csv("./../src/data/raw/sku_cost.csv", encoding = "ISO-8859-1")
+employee_final <- read.csv("./../src/data/raw/employee_final.csv", encoding = "ISO-8859-1")
+
+`2024` <- as_tibble(`2024`)
+store_final <- as_tibble(store_final)
+target_store_final <- as_tibble(target_store_final)
+sku_status_dataset <- as_tibble(sku_status_dataset)
+targets_salesperson_final <- as_tibble(targets_salesperson_final)
+sku_price <- as_tibble(sku_price)
+sku_dataset <- as_tibble(sku_dataset)
+sku_cost <- as_tibble(sku_cost)
+employee_final <- as_tibble(employee_final)
+```
+
+- Visualizando as Primeiras Linhas dos Dados
+
+As primeiras linhas dos datasets são apresentadas a seguir para facilitar a visualização inicial.
+
+```{r read first rows}
+head(`2024`)
+head(store_final)
+head(target_store_final)
+head(sku_status_dataset)
+head(targets_salesperson_final)
+head(sku_price)
+head(sku_dataset)
+head(sku_cost)
+head(employee_final)
+```
+
+- Verificação da Estrutura dos Dados
+
+A função `str` é utilizada para examinar informações sobre as colunas dos datasets, como o tipo de dados e o número de caracteres.
+
+```{r}
+str(`2024`)
+```
+
+```{r}
+str(store_final)
+```
+
+```{r}
+str(target_store_final)
+```
+
+```{r}
+str(sku_status_dataset)
+```
+
+```{r}
+str(targets_salesperson_final)
+```
+
+```{r struct datas}
+str(employee_final)
+```
+
+```{r}
+str(sku_price)
+```
+
+```{r}
+str(sku_dataset)
+```
+
+```{r}
+str(sku_cost)
+```
+
+- Resumo Estatístico
+
+A função `summary()` é utilizada para gerar um resumo estatístico das variáveis, incluindo valores mínimos, máximos, médias e quantidades.
+
+```{r summary datas}
+summary(`2024`)
+```
+
+```{r}
+summary(store_final)
+```
+
+```{r}
+summary(target_store_final)
+```
+
+```{r}
+summary(sku_status_dataset)
+```
+
+```{r}
+summary(targets_salesperson_final)
+```
+
+```{r}
+summary(sku_price)
+```
+
+```{r}
+summary(sku_dataset)
+```
+
+```{r}
+summary(sku_cost)
+```
+
+```{r}
+summary(employee_final)
+```
+
+- Descrição das Variáveis
+
+### **2024**
+
+| Coluna            | Tipo      | Descrição                         |
+|-------------------|-----------|-----------------------------------|
+| **data**          | Character | Data da transação                 |
+| **cod_vendedor**  | Numérico  | Código identificador do vendedor  |
+| **cod_loja**      | Character | Código identificador da loja      |
+| **cod_transacao** | Character | Código identificador da transação |
+| **quantidade**    | Numérico  | Quantidade de itens vendidos      |
+| **cod_prod**      | Numérico  | Código identificador do produto   |
+| **preco**         | Numérico  | Preço do produto                  |
+
+### **store_final**
+
+| Coluna               | Tipo      | Descrição                          |
+|----------------------|-----------|------------------------------------|
+| **nome_loja**        | Character | Nome da loja                       |
+| **regiao**           | Character | Região onde a loja está localizada |
+| **diretoria**        | Character | Diretoria responsável pela loja    |
+| **data_inauguracao** | Character | Data de inauguração da loja        |
+
+### **target_store_final**
+
+| Coluna           | Tipo      | Descrição                    |
+|------------------|-----------|------------------------------|
+| **month**        | Character | Mês da meta de vendas        |
+| **store_id**     | Character | Código identificador da loja |
+| **sales_target** | Numérico  | Meta de vendas para a loja   |
+
+### **sku_status_dataset**
+
+| Coluna          | Tipo      | Descrição                                       |
+|-----------------|-----------|----------------------------------|
+| **cod_prod**    | Numérico  | Código identificador do produto                 |
+| **data_inicio** | Character | Data de início da validade do status do produto |
+| **data_fim**    | Character | Data de fim da validade do status do produto    |
+
+### **targets_salesperson_final**
+
+| Coluna           | Tipo      | Descrição                           |
+|------------------|-----------|-------------------------------------|
+| **id_employee**  | Numérico  | Código identificador do funcionário |
+| **sales_target** | Numérico  | Meta de vendas para o funcionário   |
+| **month**        | Character | Mês da meta de vendas               |
+
+### **sku_price**
+
+| Coluna          | Tipo      | Descrição                                      |
+|-----------------|-----------|----------------------------------|
+| **cod_prod**    | Numérico  | Código identificador do produto                |
+| **data_inicio** | Character | Data de início da validade do preço do produto |
+| **data_fim**    | Character | Data de fim da validade do preço do produto    |
+| **preco**       | Numérico  | Preço do produto                               |
+
+### **sku_dataset**
+
+| Coluna              | Tipo      | Descrição                       |
+|---------------------|-----------|---------------------------------|
+| **cod_prod**        | Numérico  | Código identificador do produto |
+| **nome_abrev**      | Character | Nome abreviado do produto       |
+| **nome_completo**   | Character | Nome completo do produto        |
+| **descricao**       | Character | Descrição do produto            |
+| **categoria**       | Character | Categoria do produto            |
+| **sub_categoria**   | Character | Subcategoria do produto         |
+| **marca**           | Character | Marca do produto                |
+| **conteudo_valor**  | Character | Valor do conteúdo do produto    |
+| **conteudo_medida** | Character | Medida do conteúdo do produto   |
+
+### **sku_cost**
+
+| Coluna          | Tipo      | Descrição                                      |
+|-----------------|-----------|----------------------------------|
+| **cod_prod**    | Numérico  | Código identificador do produto                |
+| **data_inicio** | Character | Data de início da validade do custo do produto |
+| **data_fim**    | Character | Data de fim da validade do custo do produto    |
+| **custo**       | Numérico  | Custo do produto                               |
+
+### **employee_final**
+
+| Coluna           | Tipo      | Descrição                                                |
+|-----------------|-----------|----------------------------------|
+| **id_employee**  | Numérico  | Código identificador do funcionário                      |
+| **name**         | Character | Nome do funcionário                                      |
+| **surname**      | Character | Sobrenome do funcionário                                 |
+| **cpf**          | Character | CPF do funcionário                                       |
+| **status**       | Character | Status do funcionário (ativo/inativo)                    |
+| **role**         | Character | Função/cargo do funcionário                              |
+| **initial_date** | Character | Data de início do contrato do funcionário                |
+| **end_date**     | Character | Data de término do contrato do funcionário               |
+| **store_id**     | Character | Código identificador da loja onde o funcionário trabalha |
+
+## Reduzindo a Quantidade do Dataset
+
+Para facilitar a análise e reduzir a necessidade de processamento, foi selecionada uma amostra menor dos dados, garantindo a reprodutibilidade com uma seed.
+
+```{r reducing data}
+set.seed(123)  # Para garantir reprodutibilidade
+`2024_sample` <- `2024` %>% sample_frac(0.05)
+```
+
+# Análise Univariada
+
+Nesta seção, são realizados tratamentos específicos para analisar os valores dos datasets, identificando médias, out
+
+liers e possíveis insights para recomendações de produtos.
+
+```{r}
+# Criar uma nova base de dados com a junção das tabelas
+merged_data <- `2024` %>%
+  inner_join(sku_dataset, by = "cod_prod") %>%
+  group_by(nome_abrev) %>%
+  summarise(
+    quantidade_total = sum(quantidade),
+    preco_total = sum(preco)
+  ) %>%
+  arrange(desc(quantidade_total)) %>%
+  head(30) 
+
+# Criar uma coluna de siglas no sku_dataset
+sku_dataset <- sku_dataset %>%
+  mutate(sigla_prod = substr(nome_abrev, 1, 2))
+
+# Filtrar os top 30 produtos mais vendidos
+top_30_cod_prod <- `2024` %>%
+  group_by(cod_prod) %>%
+  summarise(total_vendas = sum(quantidade)) %>%
+  arrange(desc(total_vendas)) %>%
+  slice(1:30) %>%
+  pull(cod_prod)
+
+`2024_top_30` <- `2024` %>%
+  filter(cod_prod %in% top_30_cod_prod)
+```
+
+```{r visualization charts}
+
+# Histograma para a variável quantidade
+ggplot(`2024`, aes(x = quantidade)) +
+  geom_histogram(binwidth = 1, fill = "blue", color = "black") +
+  labs(title = "Distribuição de Quantidade", x = "Quantidade", y = "Frequência")
+```
+
+```{r}
+# Gráfico de densidade para a variável preço
+ggplot(`2024`, aes(x = preco)) +
+  geom_density(fill = "green", alpha = 0.5) +
+  labs(title = "Densidade do Preço", x = "Preço", y = "Densidade")
+```
+
+```{r}
+# Gráfico de densidade para a variável cod_prod (top 30 produtos mais vendidos)
+ggplot(`2024_top_30`, aes(x = factor(cod_prod, levels = top_30_cod_prod), group = cod_prod)) +
+  geom_density(fill = "purple", alpha = 0.5) +
+  labs(title = "Densidade de Vendas por Produto (Top 30)", x = "Sigla do Produto", y = "Densidade") +
+  theme_minimal() +
+  scale_x_discrete(labels = function(x) sku_dataset$sigla_prod[match(x, sku_dataset$cod_prod)])
+```
+
+```{r}
+# Boxplot para a variável preço
+ggplot(`2024`, aes(y = preco)) +
+  geom_boxplot(fill = "orange") +
+  labs(title = "Boxplot do Preço", y = "Preço")
+```
+
+```{r}
+# Boxplot para a variável regiao
+ggplot(store_final, aes(x = regiao)) +
+  geom_bar(fill = "purple") +
+  labs(title = "Distribuição de Regiões", x = "Região", y = "Contagem")
+```
+
+```{r}
+# Gráfico de densidade para a variável preco
+ggplot(sku_price, aes(x = preco)) +
+  geom_density(fill = "blue", alpha = 0.5) +
+  labs(title = "Densidade do Preço dos Produtos", x = "Preço", y = "Densidade")
+```
+
+```{r}
+# Boxplot para a variável preco
+ggplot(sku_price, aes(y = preco)) +
+  geom_boxplot(fill = "orange") +
+  labs(title = "Boxplot do Preço dos Produtos", y = "Preço")
+```
+
+```{r}
+# Gráfico de densidade para a variável custo
+ggplot(sku_cost, aes(x = custo)) +
+  geom_density(fill = "green", alpha = 0.5) +
+  labs(title = "Densidade do Custo dos Produtos", x = "Custo", y = "Densidade")
+```
+
+```{r}
+# Boxplot para a variável custo
+ggplot(sku_cost, aes(y = custo)) +
+  geom_boxplot(fill = "purple") +
+  labs(title = "Boxplot do Custo dos Produtos", y = "Custo")
+```
+
+```{r}
+# Histograma para a variável sales_target
+ggplot(targets_salesperson_final, aes(x = sales_target)) +
+  geom_histogram(binwidth = 5000, fill = "red", color = "black") +
+  labs(title = "Distribuição da Meta de Vendas dos Funcionários", x = "Meta de Vendas", y = "Frequência")
+```
+
+```{r}
+# Boxplot para a variável role
+ggplot(employee_final, aes(x = role)) +
+  geom_bar(fill = "blue") +
+  labs(title = "Distribuição de Funções/Cargos", x = "Função/Cargo", y = "Contagem")
+```
+
+```{r}
+# Boxplot para identificar outliers na variável quantidade
+ggplot(`2024`, aes(y = quantidade)) +
+  geom_boxplot(fill = "orange") +
+  labs(title = "Boxplot da Quantidade", y = "Quantidade")
+```
+
+```{r}
+# Boxplot para identificar outliers na variável preço
+ggplot(`2024`, aes(y = preco)) +
+  geom_boxplot(fill = "orange") +
+  labs(title = "Boxplot do Preço", y = "Preço")
+```
+
+```{r}
+# Boxplot para identificar outliers na variável preco
+ggplot(sku_price, aes(y = preco)) +
+  geom_boxplot(fill = "blue") +
+  labs(title = "Boxplot do Preço dos Produtos", y = "Preço")
+```
+
+#### Identificação de Outliers
+
+```{r}
+preco_outliers <- `2024` %>%
+  filter(preco < quantile(preco, 0.25) - 1.5 * IQR(preco) | preco > quantile(preco, 0.75) + 1.5 * IQR(preco))
+```
+
+```{r}
+preco_outliers_sku <- sku_price %>%
+  filter(preco < quantile(preco, 0.25) - 1.5 * IQR(preco) | preco > quantile(preco, 0.75) + 1.5 * IQR(preco))
+```
+
+##### Outliers na variável preço:
+
+```{r}
+print(preco_outliers)
+```
+
+##### Outliers na variável preço dos produtos:
+
+```{r}
+print(preco_outliers_sku)
+```
+
+# Análise Bivariada
+
+A análise busca entender a relação entre diferentes variáveis do dataset, como quantidade e preço, e como essas variáveis se comportam em diferentes lojas.
+
+```{r}
+set.seed(123)  # Para garantir reprodutibilidade
+`2024_sample` <- `2024` %>% sample_frac(0.50)
+```
+
+```{r}
+# Gráfico de dispersão para explorar a relação entre quantidade e preço
+ggplot(`2024_sample`, aes(x = quantidade, y = preco)) +
+  geom_point(alpha = 0.6) +
+  labs(title = "Dispersão entre Quantidade e Preço", x = "Quantidade", y = "Preço")
+```
+
+```{r}
+# Criar uma coluna de siglas para as lojas, pegando as duas primeiras letras de cada palavra
+`2024_sample` <- `2024_sample` %>%
+  mutate(sigla_loja = sapply(strsplit(cod_loja, " "), function(x) paste(substr(x, 1, 2), collapse = "")))
+
+# Gráfico de barras para explorar a relação entre cod_loja e quantidade com siglas
+ggplot(`2024_sample`, aes(x = reorder(sigla_loja, -quantidade), y = quantidade)) +
+  geom_bar(stat = "identity", fill = "blue") +
+  labs(title = "Quantidade Vendida por Loja", x = "Código da Loja (Sigla)", y = "Quantidade") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+# Análise de Componentes Principais (PCA)
+
+A PCA é uma técnica de redução de dimensionalidade que transforma um conjunto de variáveis possivelmente correlacionadas em um conjunto menor de variáveis não correlacionadas, chamadas de componentes principais. Essa transformação é feita de forma a preservar a maior parte da variância dos dados originais nos primeiros componentes principais.
+
+```{r PCA}
+# Seleção das variáveis numéricas e remoção de NAs na amostra
+numeric_vars_sample_2024 <- `2024_sample` %>% 
+  select_if(is.numeric) %>%
+  na.omit()
+
+pca_result_2024 <- prcomp(numeric_vars_sample_2024, scale. = TRUE)
+```
+
+```{r}
+summary(pca_result_2024)
+```
+
+```{r}
+fviz_eig(pca_result_2024, addlabels = TRUE, ylim = c(0, 50))
+```
+
+```{r}
+fviz_pca_var(pca_result_2024, 
+             col.var = "contrib",
+             gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
+             repel = TRUE)
+```
+
+# Conclusão e Discussão
+
+A análise realizada ofereceu várias percepções importantes sobre os dados de transações de 2024.
+
+**Distribuição de Quantidade e Preço:** A distribuição da quantidade vendida apresenta ampla variação, com alguns produtos mostrando altos volumes de vendas. O gráfico de densidade do preço revelou que a maioria dos
+
+ preços dos produtos está concentrada em uma faixa específica (entre 0 a 200), indicando uma estrutura de preços relativamente uniforme, com algumas exceções notáveis (possíveis outliers e exceções).
+
+**Identificação de Outliers:** A análise de outliers indicou que alguns dados aparentam ser outliers de forma significativa, sugerindo a possibilidade de tratamento inadequado ou entrada de dados incorreta. Produtos com características únicas também podem estar influenciando os resultados.
+
+**Análise Bivariada:** A relação entre quantidade e preço mostrou que produtos mais caros não necessariamente resultam em maior quantidade vendida. Além disso, o gráfico de barras revelou quais lojas têm maiores volumes de vendas, gerando interesse em investigar os fatores que levam algumas lojas a venderem mais que outras.
+
+## Discussão sobre Limitações e Possíveis Melhorias
+
+Durante a análise, algumas limitações e áreas para melhorias foram identificadas. A amostra reduzida do dataset foi uma escolha para minimizar o tempo de processamento e facilitar a execução das análises; no entanto, essa redução pode ter comprometido a representatividade dos dados e a robustez dos resultados. Idealmente, um conjunto de dados mais extenso e completo deveria ser utilizado para garantir maior precisão nas análises.
+
+Outra limitação foi o tratamento inadequado de alguns datasets, o que pode ter impactado a qualidade das análises. A falta de pré-processamento e tratamento específico dos dados pode ter afetado as visualizações e as inferências feitas. Isso é especialmente importante quando se trabalha com dados provenientes de múltiplas fontes e com diferentes níveis de detalhe, como preços e custos de produtos.
+
+## Características e Justificativas de Estruturação dos Dados
+
+Os dados são coletados em formato CSV e contém informações importantes para o desenvolvimento do projeto como ID do vendedor, nome, e histórico de vendas. Optamos por seguir com essa estruturação temporariamente devido à sua simplicidade e facilidade de manipulação:
+
+```{r pressure, echo=FALSE}
+#carregamento de dados 
+employee_final <-read.csv("employee_final.csv") 
+sku_cost<-read.csv("sku_cost.csv") 
+sku_dataset <-read.csv("sku_dataset.csv", sep = ";") 
+sku_price <-read.csv("sku_price.csv") 
+sku_status_dataset<-read.csv("sku_status_dataset.csv", sep = ";") 
+target_store_final_v3 <-read.csv("target_store_final_v3.csv") 
+targets_salesperson_final_v3 <-read.csv("targets_salesperson_final_v3.csv") 
+targets_salesperson_final <-read.csv("targets_salesperson_final.csv") 
+```
+
+## Dataset employee_final
+
+Este dataset contém informações detalhadas sobre os colaboradores da empresa, como identificação, status de atividade, cargo, e localização.
+
+**id_employee:** Identificador único de cada vendedor, fundamental para rastrear as atividades de cada um dentro do sistema.
+
+**name e surname:** Dados pessoais dos vendedores, não influencia diretamente nas decisões de sugestão de produtos ou avaliação de desempenho.
+
+**cpf:** Documento único de identificação no Brasil.
+
+**status**: Indicador do estado atual do vendedor (ativo, inativo, etc.). Essencial para filtrar vendedores que devem ser considerados nas análises e nos relatórios.
+
+**role:** Função ou cargo do vendedor na empresa. Pode ser utilizada para diferenciar tipos de vendedores, permitindo análises segmentadas e sugestão de produtos mais apropriados para cada perfil.
+
+**initial_date e end_date:** Datas de início e término de contrato ou vínculo do vendedor. Importantes para medir o tempo de serviço e avaliar o desempenho ao longo do tempo, além de identificar períodos de atividade para análise de engajamento.
+
+**store_id:**Identificador da loja onde o vendedor atua. Permite análises específicas por localidade, identificando quais produtos são mais vendidos em certas regiões e ajustando as sugestões de produtos de acordo com a demanda local.
+
+```{r }
+summary(employee_final)
+```
+
+## Dataset sku_cost
+
+Contém informações sobre o custo dos produtos, períodos de disponibilidade para venda e identificadores únicos dos produtos.
+
+-   **cod_prod (Código do Produto)**:Este código é um identificador único para cada produto no sistema. Ele é essencial para rastrear quais produtos estão sendo vendidos, suas características, e como eles estão performando em termos de vendas e lucratividade. Usado para identificar e sugerir produtos que mais saem e que têm maior margem de lucro, auxiliando na estratégia de vendas.
+
+-   **data_inicio e data_fim (Datas de Início e Fim de Vendas)**:As datas de início e fim indicam o período em que o produto esteve disponível para venda. Isso ajuda a entender a janela de tempo de cada produto no mercado. Essenciais para determinar a relevância temporal do produto. Produtos que tiveram bom desempenho em um período específico podem ser analisados para ver se devem ser sugeridos novamente ou se há sazonalidades a serem consideradas.
+
+-   **custo (Custo do Produto)**: O custo é um fator crítico para calcular a margem de lucro de cada produto. Ele ajuda a entender a lucratividade real dos produtos vendidos. Usado para sugerir produtos com maior margem de lucro, garantindo que os vendedores priorizem itens que maximizem o retorno financeiro.
+
+```{r }
+summary(sku_cost)
+```
+
+## Dataset sku_dataset
+
+Aqui encontramos detalhes descritivos e classificatórios dos produtos, como nomes, descrições, categorias e marcas.
+
+**cod_prod (Código do Produto):** O código do produto é uma chave única que identifica cada item no banco de dados. Ele é essencial para vincular outras informações relevantes, como vendas, margens de lucro e engajamento dos vendedores. É a base para qualquer análise específica de produto.Garante que os dados sobre produtos, como nome, categoria, e vendas, sejam corretamente associados e evitam confusões entre produtos semelhantes.
+
+**nome_abrev (Nome Abreviado)**Fornece uma versão curta do nome do produto, útil em relatórios e interfaces onde o espaço é limitado. Facilita a visualização e manipulação de dados, especialmente em displays compactos, como dashboards e relatórios resumidos.
+
+**nome_completo (Nome Completo):** Contém o nome completo e descritivo do produto, que é importante para uma compreensão clara e precisa por parte dos vendedores e gerentes. Auxilia na identificação detalhada dos produtos, permitindo uma melhor comunicação e precisão na sugestão de produtos.
+
+**descricao (Descrição):** Fornece detalhes adicionais sobre o produto, que podem incluir especificações, usos recomendados, ou diferenciais importantes. Enriquece o entendimento dos produtos, ajudando a convencer os vendedores sobre quais produtos promover com base em características específicas.
+
+**categoria (Categoria):** Agrupa os produtos em grandes grupos, como "eletrônicos" ou "alimentos", permitindo análises e sugestões em nível macro. Facilita a segmentação dos produtos e pode ser usada para identificar categorias que estão em alta, informando decisões estratégicas sobre quais categorias priorizar.
+
+**sub_categoria (Subcategoria)**Refinamento da categoria, fornecendo uma classificação mais específica dentro das categorias principais, como "smartphones" dentro de "eletrônicos". Permite sugestões mais direcionadas, otimizando as recomendações de produtos dentro de segmentos específicos, o que pode melhorar as taxas de vendas.
+
+**marca (Marca):** A marca é um atributo importante para muitos consumidores, influenciando suas decisões de compra. A análise por marca pode ajudar a identificar quais marcas têm melhor desempenho e quais podem ser melhor promovidas, otimizando as estratégias de venda.
+
+**conteudo_valor (Valor do Conteúdo)** Este campo provavelmente se refere à quantidade ou volume do produto, como "500ml" ou "1kg". É importante para entender o valor oferecido ao cliente e pode influenciar a margem de lucro, sendo um fator chave na recomendação de produtos que oferecem maior valor.
+
+**conteudo_medida (Unidade de Medida)**Especifica a unidade de medida para o conteúdo do produto, como "ml", "g", ou "unidade". Garante que o valor do conteúdo seja corretamente interpretado e comparado, essencial para cálculos precisos de estoque, preço e margem de lucro.
+
+```{r }
+summary(sku_dataset)
+```
+
+## Dataset sku_price
+
+Contém informações sobre preços dos produtos e períodos de disponibilidade para venda.
+
+**cod_prod** (Código do Produto): Esta variável representa o identificador único para cada produto. Permite que o sistema sugira produtos com base em seu desempenho anterior e potencial de lucro. Além disso, ajuda os gerentes a identificar quais produtos são mais atrativos para os vendedores mais engajados.
+
+**data_inicio** e **data_fim** (Datas de Início e Fim): As variáveis `data_inicio` e `data_fim` indicam o período em que cada produto foi ou estará disponível para venda.
+
+**preco** (Preço): é uma variável crucial, pois influencia diretamente a margem de lucro e a decisão de compra do cliente. É um dos principais fatores analisados ao sugerir produtos com maior margem de lucro.
+
+```{r }
+summary(sku_price)
+```
+
+## Dataset sku_status_dataset
+
+Armazena o status temporal dos produtos, indicando períodos de disponibilidade e promoções.
+
+**cod_prod**: é o identificador único dos produtos. Este campo é crucial para rastrear e referenciar os produtos em todas as análises e recomendações do sistema.
+
+**data_inicio:** indica o início de um período de tempo relacionado ao produto, como o começo de uma promoção, disponibilidade ou início de um ciclo de vendas.
+
+**data_fim**: marca o fim de um período relacionado ao produto, como o término de uma promoção ou disponibilidade do produto.
+
+```{r}
+summary(sku_status_dataset)
+```
+
+## Dataset target_store_final_v3
+
+Este dataset registra as metas de vendas das lojas em diferentes meses.
+
+**month**: Representa o mês do ano, sendo uma variável temporal crucial para análise de tendências sazonais e padrões de vendas ao longo do tempo.
+
+**store_id**: Identifica unicamente cada loja. Essencial para segmentar dados e entender o desempenho em diferentes localizações geográficas.
+
+**sales_target**: Refere-se à meta de vendas estabelecida para cada loja. É uma variável numérica fundamental para medir o desempenho real em comparação com o esperado.
+
+```{r }
+summary(target_store_final_v3)
+```
+
+## Dataset targets_salesperson_final_v3
+
+Contém as metas de vendas para cada vendedor, juntamente com seus identificadores e período de avaliação.
+
+**id_employee :** Um identificador numérico único para cada vendedor.
+
+**sales_target :** Representa a meta de vendas que cada vendedor deve atingir em um determinado período. É crucial para medir o sucesso dos vendedores em alcançar suas metas. Ela serve como base para comparar o desempenho real versus o esperado e, assim, determinar a eficácia das estratégias de venda adotadas.
+
+**month:** Representa o período de tempo (mês) durante o qual as metas de vendas e as vendas reais são avaliadas. É fundamental para identificar tendências sazonais, picos de vendas e comportamentos de compra ao longo do tempo.
+
+```{r }
+summary(targets_salesperson_final_v3)
+```
+
+## Dataset targets_salesperson_final
+
+Similar ao dataset anterior, focado nas metas de vendas dos vendedores, mas com potencial para uso em diferentes períodos ou cenários.
+
+**id_employee:** Um identificador numérico único para cada vendedor.
+
+**sales_target:** Representa a meta de vendas que cada vendedor deve atingir em um determinado período. Essa variável é crucial para medir o sucesso dos vendedores em alcançar suas metas.
+
+**month:** Representa o período de tempo (mês) durante o qual as metas de vendas e as vendas reais são avaliadas. É fundamental para identificar tendências sazonais, picos de vendas e comportamentos de compra ao longo do tempo.
+
+```{r}
+summary(targets_salesperson_final)
+```
+
